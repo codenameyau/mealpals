@@ -59,3 +59,11 @@ typings/
 
 # next.js build output
 .next
+
+# tmp puppeteer temp files
+tmp
+artifacts
+
+.DS_Store
+
+bin/demo

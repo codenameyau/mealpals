@@ -1,0 +1,14 @@
+{
+  "name": "mealpals",
+  "version": "1.0.0",
+  "description": "Automate mealpal booking for flex plan",
+  "main": "index.js",
+  "repository": "git@github.com:codenameyau/mealpals.git",
+  "author": "Jorge Yau <codenameyau@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^3.0.0",
+    "dotenv": "^8.1.0",
+    "puppeteer": "^1.19.0"
+  }
+}
