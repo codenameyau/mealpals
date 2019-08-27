@@ -59,7 +59,7 @@ async function main() {
     '--disable-setuid-sandbox',
     '--disable-infobars',
     '--window-position=0,0',
-    '--window-size=1388,792',
+    '--window-size=1388,800',
     '--ignore-certifcate-errors',
     '--ignore-certifcate-errors-spki-list',
   ];
@@ -72,6 +72,7 @@ async function main() {
     devtools: !headlessMode,
     defaultViewport: null,
     ignoreHTTPSErrors: true,
+    slowMo: (!headlessMode && 100) || 0,
     // userDataDir: TEMP_DIR,
   };
 
@@ -79,11 +80,10 @@ async function main() {
 
   const pages = await browser.pages();
   const page = pages[0];
+  page.setViewport({ width: 1280, height: 800})
 
-  const pageUrl = 'https://secure.mealpal.com/login';
-
-  await page.goto(pageUrl, {
-    waitUntil: 'networkidle0', // 'networkidle0' is very useful for SPAs.
+  await page.goto('https://secure.mealpal.com/login', {
+    waitUntil: 'networkidle2', // 'networkidle0' is very useful for SPAs.
   });
 
   // const findButtonAndClick = (query) => {
@@ -121,40 +121,36 @@ async function main() {
   };
 
   const emailSelector = '#user_email';
+  await page.waitForSelector(emailSelector);
+  await page.focus(emailSelector);
+  await page.type(emailSelector, MEALPAL_EMAIL, { delay: 10 });
+
   const passwordSelector = '#user_password';
+  await page.waitForSelector(passwordSelector);
+  await page.focus(passwordSelector);
+  await page.type(passwordSelector, MEALPAL_PASSWORD, { delay: 10 });
 
-  if ((await page.$(emailSelector)) !== null) {
-    await page.type(emailSelector, MEALPAL_EMAIL, { delay: 10 });
-  } else {
-    exitWithMessage(`Could not find: ${emailSelector}`);
-  }
+  const loginBtnSelector = '#new_user > input[type="submit"]';
+  await page.click(loginBtnSelector);
 
-  if ((await page.$(passwordSelector)) !== null) {
-    await page.type(passwordSelector, MEALPAL_PASSWORD, { delay: 10 });
-  } else {
-    exitWithMessage(`Could not find: ${passwordSelector}`);
-  }
+  await page.waitForNavigation();
 
-  await page.evaluate(() => {
-    const loginButton = document.querySelector('#new_user > input[type="submit"]');
-    loginButton && loginButton.click();
-  });
 
-  await page.waitForResponse(
-    (response) =>
-      response.url() === 'https://secure.mealpal.com/' && response.status() === 200
-  );
+  // await page.waitForResponse(
+  //   (response) =>
+  //     response.url() === 'https://secure.mealpal.com/' && response.status() === 200
+  // );
 
-  await delay(1000);
+  // await delay(1000);
   // clickSeeMenuForDay(1);
   // await delay(2000);
   // clickSeeMenuForDay(2);
   // await delay(2000);
-  await clickSeeMenuForDay(1);
-  await clickSeeMenuForDay(2);
-  await clickSeeMenuForDay(3);
-  await clickSeeMenuForDay(4);
-  await clickSeeMenuForDay(5);
+  // await clickSeeMenuForDay(1);
+  // await clickSeeMenuForDay(2);
+  // await clickSeeMenuForDay(3);
+  // await clickSeeMenuForDay(4);
+  // await clickSeeMenuForDay(5);
   // await clickSeeMenuOnDay(1, "Luke's Lobster");
 
   // findButtonAndClick('Cancel');
