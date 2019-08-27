@@ -24,31 +24,20 @@ if (!MEALPAL_EMAIL || !MEALPAL_PASSWORD) {
   console.log(program.help());
 }
 
-async function delay(time) {
-  return new Promise(function(resolve) {
-    setTimeout(resolve, time);
-  });
-}
-
-function exitWithMessage(message) {
-  console.error(message);
-  return process.exit(1);
-}
-
-const INDEX_TO_DAY_MAP = {
-  0: {
+const WEEKDAY_INDEX_TO_DAY = {
+  1: {
     name: 'Monday',
   },
-  1: {
+  2: {
     name: 'Tuesday',
   },
-  2: {
+  3: {
     name: 'Wednesday',
   },
-  3: {
+  4: {
     name: 'Thursday',
   },
-  4: {
+  5: {
     name: 'Friday',
   },
 };
@@ -72,7 +61,7 @@ async function main() {
     devtools: !headlessMode,
     defaultViewport: null,
     ignoreHTTPSErrors: true,
-    slowMo: (!headlessMode && 100) || 0,
+    slowMo: (!headlessMode && 50) || 0,
     // userDataDir: TEMP_DIR,
   };
 
@@ -80,46 +69,30 @@ async function main() {
 
   const pages = await browser.pages();
   const page = pages[0];
-  page.setViewport({ width: 1280, height: 800})
+  page.setViewport({ width: 1280, height: 800 });
 
   await page.goto('https://secure.mealpal.com/login', {
     waitUntil: 'networkidle2', // 'networkidle0' is very useful for SPAs.
   });
 
-  // const findButtonAndClick = (query) => {
-  //   page.evaluate((query) => {
-  //     const elements = [...document.querySelectorAll('button')];
-  //     const targetElement = elements.find((e) => e.textContent.includes(query));
-  //     targetElement && targetElement.click();
-  //   }, query);
-  // };
-
-  // const currentlyEmptyEl = targetDayEl.querySelector('.empty-day__wrapper .animation-container');
-  // `#reservation-container > div > div:nth-child(${weekdayIndex}) button .empty-day__action`;
-
-  const clickSeeMenuForDay = async (weekdayIndex) => {
-    const reservationDay = `#reservation-container > div > div:nth-child(${weekdayIndex}) button .empty-day__action`;
-    const seeMenuButton = await page.$(reservationDay);
-    console.log('seeMenuButton', seeMenuButton);
-
-    if (seeMenuButton !== null) {
-      await seeMenuButton.click();
-    }
-
-    // return page.evaluate(async (weekdayIndex) => {
-    //   const targetDayEl = document.querySelectorAll(
-    //     '.reservations-slots-container .reservation-slot'
-    //   )[weekdayIndex];
-    //   const seeMenuEl = targetDayEl.querySelector('.empty-day__action');
-
-    //   console.log('targetDayEl', targetDayEl, seeMenuEl);
-
-    //   if (seeMenuEl) {
-    //     await seeMenuEl.click();
-    //   }
-    // }, weekdayIndex);
+  const clickSeeMenuForDay = (weekdayIndex) => {
+    const seeMenuBtnSelector = `#reservation-container > div > div:nth-child(${weekdayIndex}) button.empty-day__action`;
+    return page.click(seeMenuBtnSelector);
   };
 
+  const waitForDayOfWeek = (weekdayIndex) => {
+    const extraOptions = {};
+    const dayOfWeek = WEEKDAY_INDEX_TO_DAY[weekdayIndex].name;
+
+    return page.waitFor((dayOfWeek) => {
+      const dayTextSelector = '#main > mp-weekday-carousel > div > span';
+      const currentDay = document.querySelector(dayTextSelector).textContent;
+      console.log('currentDay', currentDay, dayOfWeek)
+      return currentDay === dayOfWeek;
+    }, extraOptions, dayOfWeek);
+  };
+
+  // Login
   const emailSelector = '#user_email';
   await page.waitForSelector(emailSelector);
   await page.focus(emailSelector);
@@ -132,25 +105,15 @@ async function main() {
 
   const loginBtnSelector = '#new_user > input[type="submit"]';
   await page.click(loginBtnSelector);
+  await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
-  await page.waitForNavigation();
+  // Select meals for days
+  await clickSeeMenuForDay(4);
+  await waitForDayOfWeek(4);
 
+  await clickSeeMenuForDay(5);
+  await waitForDayOfWeek(5);
 
-  // await page.waitForResponse(
-  //   (response) =>
-  //     response.url() === 'https://secure.mealpal.com/' && response.status() === 200
-  // );
-
-  // await delay(1000);
-  // clickSeeMenuForDay(1);
-  // await delay(2000);
-  // clickSeeMenuForDay(2);
-  // await delay(2000);
-  // await clickSeeMenuForDay(1);
-  // await clickSeeMenuForDay(2);
-  // await clickSeeMenuForDay(3);
-  // await clickSeeMenuForDay(4);
-  // await clickSeeMenuForDay(5);
   // await clickSeeMenuOnDay(1, "Luke's Lobster");
 
   // findButtonAndClick('Cancel');
@@ -164,10 +127,8 @@ async function main() {
 
   // await fileChooser.accept([program.image]);
 
-  // await delay(1000);
   // findButtonAndClick('Next');
 
-  // await delay(1000);
   // console.log('HASHTAGS TO POST: ', hastagsString);
   // await page.focus(textAreaSelector);
 
@@ -183,7 +144,6 @@ async function main() {
   // await page.keyboard.press('Enter');
   // await page.keyboard.type(hastagsString);
 
-  // await delay(2000);
   // findButtonAndClick('Share');
 
   // await page.waitForResponse(
@@ -192,7 +152,6 @@ async function main() {
   //     response.status() === 200
   // );
 
-  // await delay(1000);
   // findButtonAndClick('Cancel');
   // findButtonAndClick('Not Now');
 
