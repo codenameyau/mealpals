@@ -84,12 +84,24 @@ async function main() {
     const extraOptions = {};
     const dayOfWeek = WEEKDAY_INDEX_TO_DAY[weekdayIndex].name;
 
-    return page.waitFor((dayOfWeek) => {
-      const dayTextSelector = '#main > mp-weekday-carousel > div > span';
-      const currentDay = document.querySelector(dayTextSelector).textContent;
-      console.log('currentDay', currentDay, dayOfWeek)
-      return currentDay === dayOfWeek;
-    }, extraOptions, dayOfWeek);
+    return page.waitFor(
+      (dayOfWeek) => {
+        const dayTextSelector = '#main > mp-weekday-carousel > div > span';
+        return document.querySelector(dayTextSelector).textContent === dayOfWeek;
+      },
+      extraOptions,
+      dayOfWeek
+    );
+  };
+
+  const reserveMeal = async ({ day, meal, location, favorited = true }) => {
+    await clickSeeMenuForDay(day);
+    await waitForDayOfWeek(5);
+
+    const filterMealSelector = '.filters-wrapper .filter-text input';
+    await page.waitForSelector(filterMealSelector);
+    await page.focus(filterMealSelector);
+    await page.type(meal);
   };
 
   // Login
@@ -108,54 +120,7 @@ async function main() {
   await page.waitForNavigation({ waitUntil: 'networkidle2' });
 
   // Select meals for days
-  await clickSeeMenuForDay(4);
-  await waitForDayOfWeek(4);
-
-  await clickSeeMenuForDay(5);
-  await waitForDayOfWeek(5);
-
-  // await clickSeeMenuOnDay(1, "Luke's Lobster");
-
-  // findButtonAndClick('Cancel');
-  // findButtonAndClick('Not Now');
-
-  // const [fileChooser] = await Promise.all([
-  //   page.waitForFileChooser(),
-  //   page.waitForSelector(postButtonSelector),
-  //   page.click(postButtonSelector),
-  // ]);
-
-  // await fileChooser.accept([program.image]);
-
-  // findButtonAndClick('Next');
-
-  // console.log('HASHTAGS TO POST: ', hastagsString);
-  // await page.focus(textAreaSelector);
-
-  // await page.keyboard.type('Link in bio!');
-  // await page.keyboard.press('Enter');
-  // await page.keyboard.type('.');
-  // await page.keyboard.press('Enter');
-  // await page.keyboard.type('.');
-  // await page.keyboard.press('Enter');
-  // await page.keyboard.type('.');
-  // await page.keyboard.press('Enter');
-  // await page.keyboard.type('.');
-  // await page.keyboard.press('Enter');
-  // await page.keyboard.type(hastagsString);
-
-  // findButtonAndClick('Share');
-
-  // await page.waitForResponse(
-  //   (response) =>
-  //     response.url() === 'https://www.instagram.com/qp/batch_fetch_web/' &&
-  //     response.status() === 200
-  // );
-
-  // findButtonAndClick('Cancel');
-  // findButtonAndClick('Not Now');
-
-  // await page.screenshot({ path: TEMP_DIR + '/screenshot.png' });
+  await reserveMeal({ day: 4, meal: 'Sophie' });
 }
 
 if (require.main === module) {
