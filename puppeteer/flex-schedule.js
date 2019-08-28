@@ -94,6 +94,32 @@ async function main() {
     );
   };
 
+  const logIn = async () => {
+    const emailSelector = '#user_email';
+    await page.waitForSelector(emailSelector);
+    await page.focus(emailSelector);
+    await page.type(emailSelector, MEALPAL_EMAIL, { delay: 10 });
+
+    const passwordSelector = '#user_password';
+    await page.waitForSelector(passwordSelector);
+    await page.focus(passwordSelector);
+    await page.type(passwordSelector, MEALPAL_PASSWORD, { delay: 10 });
+
+    const loginBtnSelector = '#new_user > input[type="submit"]';
+    await page.click(loginBtnSelector);
+    await page.waitForNavigation({ waitUntil: 'networkidle2' });
+  };
+
+  const rateMeal = async () => {
+    const rateMealDialogSelector = '#dialog-rate-meal';
+    const starsSelector = '#dialog-rate-meal .rate-meal__group-rating span';
+    const rateMealDialogEl = await page.$(rateMealDialogSelector);
+
+    if (!rateMealDialogEl) {
+      return;
+    }
+  };
+
   const reserveMeal = async ({ day, meal, location, favorited = true }) => {
     await clickSeeMenuForDay(day);
     await waitForDayOfWeek(5);
@@ -105,19 +131,10 @@ async function main() {
   };
 
   // Login
-  const emailSelector = '#user_email';
-  await page.waitForSelector(emailSelector);
-  await page.focus(emailSelector);
-  await page.type(emailSelector, MEALPAL_EMAIL, { delay: 10 });
+  await logIn();
 
-  const passwordSelector = '#user_password';
-  await page.waitForSelector(passwordSelector);
-  await page.focus(passwordSelector);
-  await page.type(passwordSelector, MEALPAL_PASSWORD, { delay: 10 });
-
-  const loginBtnSelector = '#new_user > input[type="submit"]';
-  await page.click(loginBtnSelector);
-  await page.waitForNavigation({ waitUntil: 'networkidle2' });
+  // Handle modals.
+  await rateMeal();
 
   // Select meals for days
   await reserveMeal({ day: 4, meal: 'Sophie' });
