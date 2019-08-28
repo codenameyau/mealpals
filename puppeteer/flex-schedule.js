@@ -126,9 +126,13 @@ async function main() {
     const bigMealEl = await page.$(bigMealSelector);
     await bigMealEl.click();
 
-    const mealReadyButton = '#dialog-rate-meal .rate-meal__group-wait-time button:first-of-type';
+    const mealReadyButtonSelector = '#dialog-rate-meal .rate-meal__group-wait-time button:first-of-type';
     const mealReadyButtonEl = await page.$(mealReadyButtonSelector);
     await mealReadyButtonEl.click();
+
+    const rateMealSubmitButtonSelector = '#dialog-rate-meal button.mp-red-button-full';
+    const rateMealSubmitButtonEl = await page.$(rateMealSubmitButtonSelector);
+    await rateMealSubmitButtonEl.click();
   };
 
   const reserveMeal = async ({ day, meal, location, favorited = true }) => {
