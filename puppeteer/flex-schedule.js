@@ -112,12 +112,23 @@ async function main() {
 
   const rateMeal = async () => {
     const rateMealDialogSelector = '#dialog-rate-meal';
-    const starsSelector = '#dialog-rate-meal .rate-meal__group-rating span';
     const rateMealDialogEl = await page.$(rateMealDialogSelector);
 
     if (!rateMealDialogEl) {
       return;
     }
+
+    const fiveStarSelector = '#dialog-rate-meal .rate-meal__group-rating span:last-of-type';
+    const fiveStarEl = await page.$(fiveStarSelector);
+    await fiveStarEl.click();
+
+    const bigMealSelector = '#dialog-rate-meal .rate-meal__group-portion span:last-of-type';
+    const bigMealEl = await page.$(bigMealSelector);
+    await bigMealEl.click();
+
+    const mealReadyButton = '#dialog-rate-meal .rate-meal__group-wait-time button:first-of-type';
+    const mealReadyButtonEl = await page.$(mealReadyButtonSelector);
+    await mealReadyButtonEl.click();
   };
 
   const reserveMeal = async ({ day, meal, location, favorited = true }) => {
