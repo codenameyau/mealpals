@@ -24,7 +24,7 @@ if (!MEALPAL_EMAIL || !MEALPAL_PASSWORD) {
   console.log(program.help());
 }
 
-const WEEKDAY_INDEX_TO_DAY = {
+const INDEX_TO_DAY = {
   1: {
     name: 'Monday',
   },
@@ -75,22 +75,34 @@ async function main() {
     waitUntil: 'networkidle2', // 'networkidle0' is very useful for SPAs.
   });
 
-  const clickSeeMenuForDay = (weekdayIndex) => {
-    const seeMenuBtnSelector = `#reservation-container > div > div:nth-child(${weekdayIndex}) button.empty-day__action`;
-    return page.click(seeMenuBtnSelector);
+  const getCurrentDay = async () => {
+    const dayTextSelector = '#main > mp-weekday-carousel > div > span';
+    await page.waitForSelector(dayTextSelector);
+
+    const dayTextEl = await page.$(dayTextSelector);
+    return dayTextEl.textContent;
   };
 
-  const waitForDayOfWeek = (weekdayIndex) => {
-    const extraOptions = {};
-    const dayOfWeek = WEEKDAY_INDEX_TO_DAY[weekdayIndex].name;
+  const clickSeeMenuForDay = async (dayIndex) => {
+    const seeMenuBtnSelector = `#reservation-container > div > div:nth-child(${dayIndex}) button.empty-day__action`;
+    const seeMenuBtnEl = await page.$(seeMenuBtnSelector);
+
+    if (seeMenuBtnEl !== null) {
+      await page.click(seeMenuBtnSelector);
+    }
+  };
+
+  const waitForDayUpdated = (dayIndex) => {
+    const waitForOptions = {};
+    const day = INDEX_TO_DAY[dayIndex].name;
 
     return page.waitFor(
-      (dayOfWeek) => {
+      (day) => {
         const dayTextSelector = '#main > mp-weekday-carousel > div > span';
-        return document.querySelector(dayTextSelector).textContent === dayOfWeek;
+        return document.querySelector(dayTextSelector).textContent === day;
       },
-      extraOptions,
-      dayOfWeek
+      waitForOptions,
+      day
     );
   };
 
@@ -137,12 +149,12 @@ async function main() {
 
   const reserveMeal = async ({ day, meal, location, favorited = true }) => {
     await clickSeeMenuForDay(day);
-    await waitForDayOfWeek(5);
+    await waitForDayUpdated(day);
 
     const filterMealSelector = '.filters-wrapper .filter-text input';
     await page.waitForSelector(filterMealSelector);
     await page.focus(filterMealSelector);
-    await page.type(meal);
+    await page.type(filterMealSelector, meal);
   };
 
   // Login
