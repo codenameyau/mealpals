@@ -158,21 +158,20 @@ async function main() {
     await page.type(filterMealSelector, meal);
 
     // Might want to return the actual node rather than the index.
-    console.log('location', location);
-    const mealBoxIndex = await page.evaluate((location) => {
-      const mealBoxes = document.querySelectorAll('.meal-listing .meal-box');
-      console.log('location', location);
-      const targetMealBoxIndex = Array.from(mealBoxes).findIndex((node) => {
+    const mealBoxIndex = await page.$$eval('.meal-listing .meal-box', (nodes, location) => {
+      return nodes.findIndex((node) => {
         return node.querySelector('.address').innerText.indexOf(location) > -1;
-      }, location);
+      });
+    }, location);
 
-      return targetMealBoxIndex;
-    });
+    const mealBoxSelector = `.meal-listing .meal-box:nth-child(${mealBoxIndex + 1})`;
+    const soldOutMessageEl = await page.$(`${mealBoxSelector} .sold-out-message`);
 
-    console.log('mealBoxIndex', mealBoxIndex);
-
-    const targetMealBoxSelector = `.meal-listing .meal-box:nth-child(${mealBoxIndex + 1})`;
-    await page.hover(targetMealBoxSelector);
+    if (soldOutMessageEl !== null) {
+      return console.error(
+        `[-] Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already sold out.`
+      );
+    }
   };
 
   // Login
@@ -183,6 +182,7 @@ async function main() {
 
   // Select meals for days
   await reserveMeal({ day: 4, meal: 'Sophie', location: '1015 6th Ave' });
+  browser.close();
 }
 
 if (require.main === module) {
