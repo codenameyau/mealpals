@@ -155,6 +155,7 @@ async function main() {
     const filterMealSelector = '.filters-wrapper .filter-text input';
     await page.waitForSelector(filterMealSelector);
     await page.focus(filterMealSelector);
+    await page.$eval(filterMealSelector, el => el.value = '');
     await page.type(filterMealSelector, meal);
 
     // Might want to return the actual node rather than the index.
@@ -166,6 +167,12 @@ async function main() {
 
     const mealBoxSelector = `.meal-listing .meal-box:nth-child(${mealBoxIndex + 1})`;
     const soldOutMessageEl = await page.$(`${mealBoxSelector} .sold-out-message`);
+
+    if (mealBoxIndex === -1) {
+      return console.error(
+        `[-] Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is not available.`
+      )
+    }
 
     if (soldOutMessageEl !== null) {
       return console.error(
@@ -182,7 +189,8 @@ async function main() {
 
   // Select meals for days
   await reserveMeal({ day: 4, meal: 'Sophie', location: '1015 6th Ave' });
-  browser.close();
+  await reserveMeal({ day: 5, meal: 'Sophie', location: '21 W 45th St' });
+  // browser.close();
 }
 
 if (require.main === module) {
