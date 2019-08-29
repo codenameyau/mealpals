@@ -61,7 +61,7 @@ async function main() {
     devtools: !headlessMode,
     defaultViewport: null,
     ignoreHTTPSErrors: true,
-    slowMo: (!headlessMode && 50) || 0,
+    slowMo: (!headlessMode && 25) || 0,
     // userDataDir: TEMP_DIR,
   };
 
@@ -138,7 +138,8 @@ async function main() {
     const bigMealEl = await page.$(bigMealSelector);
     await bigMealEl.click();
 
-    const mealReadyButtonSelector = '#dialog-rate-meal .rate-meal__group-wait-time button:first-of-type';
+    const mealReadyButtonSelector =
+      '#dialog-rate-meal .rate-meal__group-wait-time button:first-of-type';
     const mealReadyButtonEl = await page.$(mealReadyButtonSelector);
     await mealReadyButtonEl.click();
 
@@ -155,6 +156,23 @@ async function main() {
     await page.waitForSelector(filterMealSelector);
     await page.focus(filterMealSelector);
     await page.type(filterMealSelector, meal);
+
+    // Might want to return the actual node rather than the index.
+    console.log('location', location);
+    const mealBoxIndex = await page.evaluate((location) => {
+      const mealBoxes = document.querySelectorAll('.meal-listing .meal-box');
+      console.log('location', location);
+      const targetMealBoxIndex = Array.from(mealBoxes).findIndex((node) => {
+        return node.querySelector('.address').innerText.indexOf(location) > -1;
+      }, location);
+
+      return targetMealBoxIndex;
+    });
+
+    console.log('mealBoxIndex', mealBoxIndex);
+
+    const targetMealBoxSelector = `.meal-listing .meal-box:nth-child(${mealBoxIndex + 1})`;
+    await page.hover(targetMealBoxSelector);
   };
 
   // Login
@@ -164,7 +182,7 @@ async function main() {
   await rateMeal();
 
   // Select meals for days
-  await reserveMeal({ day: 4, meal: 'Sophie' });
+  await reserveMeal({ day: 4, meal: 'Sophie', location: '1015 6th Ave' });
 }
 
 if (require.main === module) {
