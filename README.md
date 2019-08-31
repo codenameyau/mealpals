@@ -21,6 +21,7 @@ Alternatively you can enter your username and password via the commandline.
 
 
 ## Scheduling Task
+You can change the meals inside the `flex-meals.json` file.
 
 ```sh
 node puppeteer/flex-schedule.js --headless >> flex-schedule.log 2>&1

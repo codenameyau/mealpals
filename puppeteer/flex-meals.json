@@ -1,0 +1,28 @@
+{
+  "meals": [
+    {
+      "day": 2,
+      "meal": "go go curry",
+      "location": "273 W 38th St",
+      "timeSlot": 3
+    },
+    {
+      "day": 3,
+      "meal": "sophie",
+      "location": "1015 6th Ave",
+      "timeSlot": 3
+    },
+    {
+      "day": 3,
+      "meal": "wok to walk",
+      "location": "570 8th Ave",
+      "timeSlot": 3
+    },
+    {
+      "day": 4,
+      "meal": "luke",
+      "location": "1407 Broadway",
+      "timeSlot": 3
+    }
+  ]
+}

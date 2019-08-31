@@ -4,6 +4,7 @@ require('dotenv').config();
 const puppeteer = require('puppeteer');
 const program = require('commander');
 const path = require('path');
+const flexMeals = require('./flex-meals.json')
 
 program.version('0.0.1');
 
@@ -248,21 +249,15 @@ async function main() {
     await closePickupInfoModal();
   };
 
-  // Login
   await logIn();
-
-  // Handle modals.
   await rateMeal();
-
-  // Handle kitchen closed.
   await exitIfKitchenClosed();
 
-  // Select meals for days
-  await reserveMeal({ day: 2, meal: 'go go curry', location: '273 W 38th St', timeSlot: 3 });
-  await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
-  await reserveMeal({ day: 3, meal: 'wok to walk', location: '570 8th Ave', timeSlot: 3 });
-  await reserveMeal({ day: 4, meal: 'luke', location: '1407 Broadway', timeSlot: 3 });
-  browser.close();
+  for (let meal of flexMeals.meals) {
+    await reserveMeal(meal);
+  }
+
+  headlessMode && browser.close();
 }
 
 if (require.main === module) {
