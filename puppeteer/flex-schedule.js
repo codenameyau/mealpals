@@ -262,7 +262,7 @@ async function main() {
   await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
   await reserveMeal({ day: 3, meal: 'wok to walk', location: '570 8th Ave', timeSlot: 3 });
   await reserveMeal({ day: 4, meal: 'luke', location: '1407 Broadway', timeSlot: 3 });
-  // browser.close();
+  browser.close();
 }
 
 if (require.main === module) {

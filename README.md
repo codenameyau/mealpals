@@ -20,7 +20,7 @@ vim .env
 Alternatively you can enter your username and password via the commandline.
 
 
-## Running on cron and production systems
+## Scheduling Task
 
 ```sh
 node puppeteer/flex-schedule.js --headless >> flex-schedule.log 2>&1
