@@ -165,7 +165,7 @@ async function main() {
   // - Meal is in the past but not reserved (.empty-day but no see menu button).
   // - Meal is in the future but reserved (don't reserve again).
   // - Meal is in the future but not reserved (continue with logic).
-  const reserveMeal = async ({ day, meal, location, favorited = true }) => {
+  const reserveMeal = async ({ day, meal, location, timeSlot = 3, favorited = true }) => {
     const currentDaySelector = `#reservation-container > div > div:nth-child(${day})`;
     const currentDayEl = await page.$(currentDaySelector);
 
@@ -216,7 +216,7 @@ async function main() {
       );
     }
 
-    const confirmMeal = async (timeSlot = 3) => {
+    const confirmMeal = async () => {
       const mealSelector = `${mealBoxSelector} .meal`;
       const mealEl = await page.$(mealSelector);
       await mealEl.hover();
@@ -229,7 +229,8 @@ async function main() {
 
       const reserveBtnEl = await page.$(`${mealSelector} .mp-reserve-button`);
       await reserveBtnEl.click();
-      logger.log(
+
+      logger.logTime(
         `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is successfully reserved.`
       );
     };
@@ -244,7 +245,7 @@ async function main() {
       }
     };
 
-    await confirmMeal(mealBoxSelector);
+    await confirmMeal();
     await closePickupInfoModal();
   };
 
@@ -258,11 +259,11 @@ async function main() {
   await exitIfKitchenClosed();
 
   // Select meals for days
-  await reserveMeal({ day: 2, meal: 'go go curry', location: '273 W 38th St' });
-  await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave' });
-  await reserveMeal({ day: 3, meal: 'wok to walk', location: '570 8th Ave' });
-  // await reserveMeal({ day: 4, meal: 'sophie', location: '1015 6th Ave' });
-  // await reserveMeal({ day: 5, meal: 'sophie', location: '21 W 45th St' });
+  await reserveMeal({ day: 2, meal: 'go go curry', location: '273 W 38th St', timeSlot: 3 });
+  await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
+  await reserveMeal({ day: 3, meal: 'wok to walk', location: '570 8th Ave', timeSlot: 3 });
+  // await reserveMeal({ day: 4, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
+  // await reserveMeal({ day: 5, meal: 'sophie', location: '21 W 45th St', timeSlot: 3 });
   // browser.close();
 }
 
