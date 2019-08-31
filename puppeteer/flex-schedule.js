@@ -134,28 +134,6 @@ async function main() {
     }
   };
 
-  const confirmMeal = async(mealListingSelector, timeSlot = 3) => {
-    const mealSelector = `${mealListingSelector} .meal`;
-    const mealEl = await page.$(mealSelector);
-    await mealEl.hover();
-
-    const dropdownButtonEl = await page.$(`${mealSelector} .meal-dropdown__button`);
-    await dropdownButtonEl.click();
-
-    const dropdownTimeEl = await page.$(`${mealSelector} ul > li:nth-child(${timeSlot})`);
-    await dropdownTimeEl.click();
-  };
-
-  const closePickupInfoModal = async () => {
-    const modalSelector = 'header-modal__body-wrapper--pickup-info';
-    const modalEl = await page.$(modalSelector);
-
-    if (modalEl !== null) {
-      const closeBtnSelector = `${modalSelector} button.modal__button`;
-      await page.click(closeBtnSelector);
-    }
-  };
-
   const rateMeal = async () => {
     const rateMealDialogSelector = '#dialog-rate-meal';
     const rateMealDialogEl = await page.$(rateMealDialogSelector);
@@ -234,9 +212,37 @@ async function main() {
 
     if (soldOutMessageEl !== null) {
       return logger.logTime(
-        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already sold out.`
+        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already is sold out.`
       );
     }
+
+    const confirmMeal = async (timeSlot = 3) => {
+      const mealSelector = `${mealBoxSelector} .meal`;
+      const mealEl = await page.$(mealSelector);
+      await mealEl.hover();
+
+      const dropdownButtonEl = await page.$(`${mealSelector} .meal-dropdown__button`);
+      await dropdownButtonEl.click();
+
+      const dropdownTimeEl = await page.$(`${mealSelector} ul > li:nth-child(${timeSlot})`);
+      await dropdownTimeEl.click();
+
+      const reserveBtnEl = await page.$(`${mealSelector} .mp-reserve-button`);
+      await reserveBtnEl.click();
+      logger.log(
+        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is successfully reserved.`
+      );
+    };
+
+    const closePickupInfoModal = async () => {
+      const modalSelector = 'header-modal__body-wrapper--pickup-info';
+      const modalEl = await page.$(modalSelector);
+
+      if (modalEl !== null) {
+        const closeBtnSelector = `${modalSelector} button.modal__button`;
+        await page.click(closeBtnSelector);
+      }
+    };
 
     await confirmMeal(mealBoxSelector);
     await closePickupInfoModal();
