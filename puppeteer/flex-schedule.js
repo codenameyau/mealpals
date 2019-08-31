@@ -91,17 +91,17 @@ async function main() {
     return dayTextEl.textContent;
   };
 
-  const waitForDayUpdated = async (dayIndex) => {
+  const waitForDayUpdated = async (day) => {
     const waitForOptions = {};
-    const day = INDEX_TO_DAY[dayIndex].name;
+    const dayName = INDEX_TO_DAY[day].name;
 
     return page.waitFor(
-      (day) => {
+      (dayName) => {
         const dayTextSelector = '#main > mp-weekday-carousel > div > span';
-        return document.querySelector(dayTextSelector).textContent === day;
+        return document.querySelector(dayTextSelector).textContent === dayName;
       },
       waitForOptions,
-      day
+      dayName
     );
   };
 
@@ -164,7 +164,7 @@ async function main() {
   // - Meal is in the future but reserved (don't reserve again).
   // - Meal is in the future but not reserved (continue with logic).
   const reserveMeal = async ({ day, meal, location, favorited = true }) => {
-    const currentDaySelector = `#reservation-container > div > div:nth-child(${dayIndex})`;
+    const currentDaySelector = `#reservation-container > div > div:nth-child(${day})`;
     const currentDayEl = await page.$(currentDaySelector);
 
     const seeMenuBtnSelector = `${currentDaySelector} button.empty-day__action`;
@@ -172,7 +172,7 @@ async function main() {
 
     if (seeMenuBtnEl !== null) {
       await page.click(seeMenuBtnSelector);
-      await waitForDayUpdated(dayIndex);
+      await waitForDayUpdated(day);
     }
 
     await clickSeeMenuForDay(day);
