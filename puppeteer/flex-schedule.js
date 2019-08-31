@@ -70,7 +70,7 @@ function getCurrentTime() {
 
 const logger = {
   logTime: (text) => {
-    console.log(`(${getCurrentTime()}) - ${text}\n`);
+    console.log(`(${getCurrentTime()}) - ${text}`);
   }
 };
 
@@ -123,7 +123,7 @@ async function main() {
     await page.waitForNavigation({ waitUntil: 'networkidle2' });
   };
 
-  const closeIfKitchenClosed = async () => {
+  const exitIfKitchenClosed = async () => {
     const closedKitchenSelector = '.kitchen-closed';
     const closedKitchenEl = await page.$(closedKitchenSelector);
 
@@ -132,6 +132,18 @@ async function main() {
       await browser.close();
       process.exit(0);
     }
+  };
+
+  const confirmMeal = async(mealListingSelector, timeSlot = 3) => {
+    const mealSelector = `${mealListingSelector} .meal`;
+    const mealEl = await page.$(mealSelector);
+    await mealEl.hover();
+
+    const dropdownButtonEl = await page.$(`${mealSelector} .meal-dropdown__button`);
+    await dropdownButtonEl.click();
+
+    const dropdownTimeEl = await page.$(`${mealSelector} ul > li:nth-child(${timeSlot})`);
+    await dropdownTimeEl.click();
   };
 
   const closePickupInfoModal = async () => {
@@ -171,8 +183,8 @@ async function main() {
   };
 
   // Check for these states for selected day:
-  // - Meal is already reserved (has image).
-  // - Meal is in the past but not reserved (has text sorry we missed you).
+  // - Meal is already reserved.
+  // - Meal is in the past but not reserved (.empty-day but no see menu button).
   // - Meal is in the future but reserved (don't reserve again).
   // - Meal is in the future but not reserved (continue with logic).
   const reserveMeal = async ({ day, meal, location, favorited = true }) => {
@@ -193,8 +205,6 @@ async function main() {
       await page.click(seeMenuBtnSelector);
       await waitForDayUpdated(day);
     }
-
-    await clickSeeMenuForDay(day);
 
     const filterMealSelector = '.filters-wrapper .filter-text input';
     await page.waitForSelector(filterMealSelector);
@@ -228,7 +238,7 @@ async function main() {
       );
     }
 
-    // Close modal pickup info.
+    await confirmMeal(mealBoxSelector);
     await closePickupInfoModal();
   };
 
@@ -239,12 +249,14 @@ async function main() {
   await rateMeal();
 
   // Handle kitchen closed.
-  await closeIfKitchenClosed();
+  await exitIfKitchenClosed();
 
   // Select meals for days
-  await reserveMeal({ day: 2, meal: 'Sophie', location: '1015 6th Ave' });
-  // await reserveMeal({ day: 4, meal: 'Sophie', location: '1015 6th Ave' });
-  // await reserveMeal({ day: 5, meal: 'Sophie', location: '21 W 45th St' });
+  await reserveMeal({ day: 2, meal: 'go go curry', location: '273 W 38th St' });
+  await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave' });
+  await reserveMeal({ day: 3, meal: 'wok to walk', location: '570 8th Ave' });
+  // await reserveMeal({ day: 4, meal: 'sophie', location: '1015 6th Ave' });
+  // await reserveMeal({ day: 5, meal: 'sophie', location: '21 W 45th St' });
   // browser.close();
 }
 
