@@ -20,3 +20,13 @@ vim .env
 Alternatively you can enter your username and password via the commandline.
 
 
+## Running on cron and production systems
+
+```sh
+node puppeteer/flex-schedule.js --headless >> flex-schedule.log 2>&1
+```
+
+## Notes
+
+- Mealpal kitchen opens Friday at 8pm?
+- Meals are back on Sunday such as sophies.

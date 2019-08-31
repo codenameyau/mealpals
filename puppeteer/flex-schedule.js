@@ -42,29 +42,37 @@ const INDEX_TO_DAY = {
   },
 };
 
+const args = [
+  '--no-sandbox',
+  '--disable-setuid-sandbox',
+  '--disable-infobars',
+  '--window-position=0,0',
+  '--window-size=1388,800',
+  '--ignore-certifcate-errors',
+  '--ignore-certifcate-errors-spki-list',
+];
+
+const headlessMode = !!(program.headless || false);
+
+const options = {
+  args,
+  headless: headlessMode,
+  devtools: !headlessMode,
+  defaultViewport: null,
+  ignoreHTTPSErrors: true,
+  slowMo: (!headlessMode && 25) || 0,
+  // userDataDir: TEMP_DIR,
+};
+
+function getCurrentTime() {
+  return new Date().toLocaleString();
+}
+
+function logger(text, logFunc = console.log) {
+  logFunc(`(${getCurrentTime()}) - ${text}\n`);
+}
+
 async function main() {
-  const args = [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--disable-infobars',
-    '--window-position=0,0',
-    '--window-size=1388,800',
-    '--ignore-certifcate-errors',
-    '--ignore-certifcate-errors-spki-list',
-  ];
-
-  const headlessMode = !!(program.headless || false);
-
-  const options = {
-    args,
-    headless: headlessMode,
-    devtools: !headlessMode,
-    defaultViewport: null,
-    ignoreHTTPSErrors: true,
-    slowMo: (!headlessMode && 25) || 0,
-    // userDataDir: TEMP_DIR,
-  };
-
   const browser = await puppeteer.launch(options);
 
   const pages = await browser.pages();
@@ -83,16 +91,7 @@ async function main() {
     return dayTextEl.textContent;
   };
 
-  const clickSeeMenuForDay = async (dayIndex) => {
-    const seeMenuBtnSelector = `#reservation-container > div > div:nth-child(${dayIndex}) button.empty-day__action`;
-    const seeMenuBtnEl = await page.$(seeMenuBtnSelector);
-
-    if (seeMenuBtnEl !== null) {
-      await page.click(seeMenuBtnSelector);
-    }
-  };
-
-  const waitForDayUpdated = (dayIndex) => {
+  const waitForDayUpdated = async (dayIndex) => {
     const waitForOptions = {};
     const day = INDEX_TO_DAY[dayIndex].name;
 
@@ -122,6 +121,17 @@ async function main() {
     await page.waitForNavigation({ waitUntil: 'networkidle2' });
   };
 
+  const closeIfKitchenClosed = async () => {
+    const closedKitchenSelector = '.kitchen-closed';
+    const closedKitchenEl = await page.$(closedKitchenSelector);
+
+    if (closedKitchenEl !== null) {
+      logger('Kitchen is now closed.');
+      await browser.close();
+      process.exit(0);
+    }
+  };
+
   const rateMeal = async () => {
     const rateMealDialogSelector = '#dialog-rate-meal';
     const rateMealDialogEl = await page.$(rateMealDialogSelector);
@@ -148,35 +158,54 @@ async function main() {
     await rateMealSubmitButtonEl.click();
   };
 
+  // Check for these states for selected day:
+  // - Meal is already reserved (has image).
+  // - Meal is in the past but not reserved (has text sorry we missed you).
+  // - Meal is in the future but reserved (don't reserve again).
+  // - Meal is in the future but not reserved (continue with logic).
   const reserveMeal = async ({ day, meal, location, favorited = true }) => {
+    const currentDaySelector = `#reservation-container > div > div:nth-child(${dayIndex})`;
+    const currentDayEl = await page.$(currentDaySelector);
+
+    const seeMenuBtnSelector = `${currentDaySelector} button.empty-day__action`;
+    const seeMenuBtnEl = await page.$(seeMenuBtnSelector);
+
+    if (seeMenuBtnEl !== null) {
+      await page.click(seeMenuBtnSelector);
+      await waitForDayUpdated(dayIndex);
+    }
+
     await clickSeeMenuForDay(day);
-    await waitForDayUpdated(day);
 
     const filterMealSelector = '.filters-wrapper .filter-text input';
     await page.waitForSelector(filterMealSelector);
     await page.focus(filterMealSelector);
-    await page.$eval(filterMealSelector, el => el.value = '');
+    await page.$eval(filterMealSelector, (el) => (el.value = ''));
     await page.type(filterMealSelector, meal);
 
     // Might want to return the actual node rather than the index.
-    const mealBoxIndex = await page.$$eval('.meal-listing .meal-box', (nodes, location) => {
-      return nodes.findIndex((node) => {
-        return node.querySelector('.address').innerText.indexOf(location) > -1;
-      });
-    }, location);
+    const mealBoxIndex = await page.$$eval(
+      '.meal-listing .meal-box',
+      (nodes, location) => {
+        return nodes.findIndex((node) => {
+          return node.querySelector('.address').innerText.indexOf(location) > -1;
+        });
+      },
+      location
+    );
 
     const mealBoxSelector = `.meal-listing .meal-box:nth-child(${mealBoxIndex + 1})`;
     const soldOutMessageEl = await page.$(`${mealBoxSelector} .sold-out-message`);
 
     if (mealBoxIndex === -1) {
-      return console.error(
-        `[-] Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is not available.`
-      )
+      return logger(
+        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is not available.`
+      );
     }
 
     if (soldOutMessageEl !== null) {
-      return console.error(
-        `[-] Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already sold out.`
+      return logger(
+        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already sold out.`
       );
     }
   };
@@ -186,6 +215,9 @@ async function main() {
 
   // Handle modals.
   await rateMeal();
+
+  // Handle kitchen closed.
+  await closeIfKitchenClosed();
 
   // Select meals for days
   await reserveMeal({ day: 4, meal: 'Sophie', location: '1015 6th Ave' });
