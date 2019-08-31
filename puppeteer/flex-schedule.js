@@ -69,7 +69,7 @@ function getCurrentTime() {
 const logger = {
   logTime: (text) => {
     console.log(`(${getCurrentTime()}) - ${text}`);
-  }
+  },
 };
 
 async function main() {
@@ -169,9 +169,7 @@ async function main() {
     const mealReservedSelector = `${currentDaySelector} .flex-reservation__meal-info`;
     const mealReservedEl = await page.$(mealReservedSelector);
     if (mealReservedEl !== null) {
-      return logger.logTime(
-        `Meal for ${INDEX_TO_DAY[day].name} is already reserved.`
-      );
+      return logger.logTime(`Meal for ${INDEX_TO_DAY[day].name} is already reserved.`);
     }
 
     const seeMenuBtnSelector = `${currentDaySelector} button.empty-day__action`;
@@ -218,16 +216,17 @@ async function main() {
       const mealEl = await page.$(mealSelector);
       await mealEl.hover();
 
-      // const dropdownButtonEl = await page.$(`${mealSelector} .meal-dropdown__button`);
-      // await dropdownButtonEl.click();
+      await page.evaluate(
+        (mealBoxSelector, timeSlot) => {
+          const dropdownTimeSelector = `${mealBoxSelector} ul > li:nth-child(${timeSlot})`;
+          document.querySelector(dropdownTimeSelector).click();
 
-      const dropdownTimeSelector = `${mealBoxSelector} ul > li:nth-child(${timeSlot})`;
-      const dropdownTimeEl = await page.$(dropdownTimeSelector);
-      console.log(dropdownTimeSelector);
-      await dropdownTimeEl.click();
-
-      const reserveBtnEl = await page.$(`${mealBoxSelector} .mp-reserve-button`);
-      await reserveBtnEl.click();
+          const reserveBtnSelector = `${mealBoxSelector} .mp-reserve-button`;
+          document.querySelector(reserveBtnSelector).click();
+        },
+        mealBoxSelector,
+        timeSlot
+      );
 
       logger.logTime(
         `Meal "${meal}" at ${location} for ${INDEX_TO_DAY[day].name} successfully reserved.`
@@ -235,9 +234,10 @@ async function main() {
     };
 
     const closePickupInfoModal = async () => {
-      const modalSelector = 'header-modal__body-wrapper--pickup-info';
-      const modalEl = await page.$(modalSelector);
+      const modalSelector = '.header-modal__body-wrapper--pickup-info';
+      await page.waitForSelector(modalSelector);
 
+      const modalEl = await page.$(modalSelector);
       if (modalEl !== null) {
         const closeBtnSelector = `${modalSelector} button.modal__button`;
         await page.click(closeBtnSelector);
@@ -261,8 +261,7 @@ async function main() {
   await reserveMeal({ day: 2, meal: 'go go curry', location: '273 W 38th St', timeSlot: 3 });
   await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
   await reserveMeal({ day: 3, meal: 'wok to walk', location: '570 8th Ave', timeSlot: 3 });
-  await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
-  // await reserveMeal({ day: 5, meal: 'sophie', location: '21 W 45th St', timeSlot: 3 });
+  await reserveMeal({ day: 4, meal: 'luke', location: '1407 Broadway', timeSlot: 3 });
   // browser.close();
 }
 
