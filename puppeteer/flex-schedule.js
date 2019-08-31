@@ -68,9 +68,11 @@ function getCurrentTime() {
   return new Date().toLocaleString();
 }
 
-function logger(text, logFunc = console.log) {
-  logFunc(`(${getCurrentTime()}) - ${text}\n`);
-}
+const logger = {
+  logTime: (text) => {
+    console.log(`(${getCurrentTime()}) - ${text}\n`);
+  }
+};
 
 async function main() {
   const browser = await puppeteer.launch(options);
@@ -126,7 +128,7 @@ async function main() {
     const closedKitchenEl = await page.$(closedKitchenSelector);
 
     if (closedKitchenEl !== null) {
-      logger('Kitchen is now closed.');
+      logger.logTime('Kitchen is now closed.');
       await browser.close();
       process.exit(0);
     }
@@ -177,9 +179,16 @@ async function main() {
     const currentDaySelector = `#reservation-container > div > div:nth-child(${day})`;
     const currentDayEl = await page.$(currentDaySelector);
 
+    const mealReservedSelector = `${currentDaySelector} .flex-reservation__meal-info`;
+    const mealReservedEl = await page.$(mealReservedSelector);
+    if (mealReservedEl !== null) {
+      return logger.logTime(
+        `Meal for ${INDEX_TO_DAY[day].name} is already reserved.`
+      );
+    }
+
     const seeMenuBtnSelector = `${currentDaySelector} button.empty-day__action`;
     const seeMenuBtnEl = await page.$(seeMenuBtnSelector);
-
     if (seeMenuBtnEl !== null) {
       await page.click(seeMenuBtnSelector);
       await waitForDayUpdated(day);
@@ -208,13 +217,13 @@ async function main() {
     const soldOutMessageEl = await page.$(`${mealBoxSelector} .sold-out-message`);
 
     if (mealBoxIndex === -1) {
-      return logger(
+      return logger.logTime(
         `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is not available.`
       );
     }
 
     if (soldOutMessageEl !== null) {
-      return logger(
+      return logger.logTime(
         `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already sold out.`
       );
     }
@@ -233,8 +242,9 @@ async function main() {
   await closeIfKitchenClosed();
 
   // Select meals for days
-  await reserveMeal({ day: 4, meal: 'Sophie', location: '1015 6th Ave' });
-  await reserveMeal({ day: 5, meal: 'Sophie', location: '21 W 45th St' });
+  await reserveMeal({ day: 2, meal: 'Sophie', location: '1015 6th Ave' });
+  // await reserveMeal({ day: 4, meal: 'Sophie', location: '1015 6th Ave' });
+  // await reserveMeal({ day: 5, meal: 'Sophie', location: '21 W 45th St' });
   // browser.close();
 }
 
