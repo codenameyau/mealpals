@@ -47,7 +47,7 @@ const args = [
   '--disable-setuid-sandbox',
   '--disable-infobars',
   '--window-position=0,0',
-  '--window-size=1388,800',
+  '--window-size=1388,900',
   '--ignore-certifcate-errors',
   '--ignore-certifcate-errors-spki-list',
 ];
@@ -132,6 +132,16 @@ async function main() {
     }
   };
 
+  const closePickupInfoModal = async () => {
+    const modalSelector = 'header-modal__body-wrapper--pickup-info';
+    const modalEl = await page.$(modalSelector);
+
+    if (modalEl !== null) {
+      const closeBtnSelector = `${modalSelector} button.modal__button`;
+      await page.click(closeBtnSelector);
+    }
+  };
+
   const rateMeal = async () => {
     const rateMealDialogSelector = '#dialog-rate-meal';
     const rateMealDialogEl = await page.$(rateMealDialogSelector);
@@ -208,6 +218,9 @@ async function main() {
         `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already sold out.`
       );
     }
+
+    // Close modal pickup info.
+    await closePickupInfoModal();
   };
 
   // Login
