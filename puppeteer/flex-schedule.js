@@ -7,8 +7,6 @@ const path = require('path');
 
 program.version('0.0.1');
 
-const TEMP_DIR = path.join(__dirname, '../tmp');
-
 program
   .option('-h, --headless', '(optional) specify to run in headless mode', false)
   .option('-e, --email <email>', '(required) specify email address')
@@ -61,7 +59,7 @@ const options = {
   defaultViewport: null,
   ignoreHTTPSErrors: true,
   slowMo: (!headlessMode && 25) || 0,
-  // userDataDir: TEMP_DIR,
+  // userDataDir: path.join(__dirname, '../tmp'),
 };
 
 function getCurrentTime() {
@@ -165,9 +163,8 @@ async function main() {
   // - Meal is in the past but not reserved (.empty-day but no see menu button).
   // - Meal is in the future but reserved (don't reserve again).
   // - Meal is in the future but not reserved (continue with logic).
-  const reserveMeal = async ({ day, meal, location, timeSlot = 3, favorited = true }) => {
+  const reserveMeal = async ({ day, meal, location, timeSlot = 3 }) => {
     const currentDaySelector = `#reservation-container > div > div:nth-child(${day})`;
-    const currentDayEl = await page.$(currentDaySelector);
 
     const mealReservedSelector = `${currentDaySelector} .flex-reservation__meal-info`;
     const mealReservedEl = await page.$(mealReservedSelector);
@@ -206,13 +203,13 @@ async function main() {
 
     if (mealBoxIndex === -1) {
       return logger.logTime(
-        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is not available.`
+        `Meal "${meal}" at ${location} for ${INDEX_TO_DAY[day].name} is not available.`
       );
     }
 
     if (soldOutMessageEl !== null) {
       return logger.logTime(
-        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} already is sold out.`
+        `Meal "${meal}" at ${location} for ${INDEX_TO_DAY[day].name} is sold out.`
       );
     }
 
@@ -221,17 +218,19 @@ async function main() {
       const mealEl = await page.$(mealSelector);
       await mealEl.hover();
 
-      const dropdownButtonEl = await page.$(`${mealSelector} .meal-dropdown__button`);
-      await dropdownButtonEl.click();
+      // const dropdownButtonEl = await page.$(`${mealSelector} .meal-dropdown__button`);
+      // await dropdownButtonEl.click();
 
-      const dropdownTimeEl = await page.$(`${mealSelector} ul > li:nth-child(${timeSlot})`);
+      const dropdownTimeSelector = `${mealBoxSelector} ul > li:nth-child(${timeSlot})`;
+      const dropdownTimeEl = await page.$(dropdownTimeSelector);
+      console.log(dropdownTimeSelector);
       await dropdownTimeEl.click();
 
-      const reserveBtnEl = await page.$(`${mealSelector} .mp-reserve-button`);
+      const reserveBtnEl = await page.$(`${mealBoxSelector} .mp-reserve-button`);
       await reserveBtnEl.click();
 
       logger.logTime(
-        `Meal ${meal} at ${location} for ${INDEX_TO_DAY[day].name} is successfully reserved.`
+        `Meal "${meal}" at ${location} for ${INDEX_TO_DAY[day].name} successfully reserved.`
       );
     };
 
@@ -262,7 +261,7 @@ async function main() {
   await reserveMeal({ day: 2, meal: 'go go curry', location: '273 W 38th St', timeSlot: 3 });
   await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
   await reserveMeal({ day: 3, meal: 'wok to walk', location: '570 8th Ave', timeSlot: 3 });
-  // await reserveMeal({ day: 4, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
+  await reserveMeal({ day: 3, meal: 'sophie', location: '1015 6th Ave', timeSlot: 3 });
   // await reserveMeal({ day: 5, meal: 'sophie', location: '21 W 45th St', timeSlot: 3 });
   // browser.close();
 }
