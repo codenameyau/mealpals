@@ -3,13 +3,13 @@
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 const program = require('commander');
-const path = require('path');
 const flexMeals = require('./flex-meals.json')
 
 program.version('0.0.1');
 
 program
   .option('-h, --headless', '(optional) specify to run in headless mode', false)
+  .option('-r, --refresh', '(optional) refresh when kitchen is closed', false)
   .option('-e, --email <email>', '(required) specify email address')
   .option('-p, --password <password>', '(required) specify password');
 
@@ -59,8 +59,8 @@ const options = {
   devtools: !headlessMode,
   defaultViewport: null,
   ignoreHTTPSErrors: true,
-  slowMo: (!headlessMode && 25) || 0,
-  // userDataDir: path.join(__dirname, '../tmp'),
+  slowMo: (!headlessMode && 10) || 0,
+  // userDataDir: require('path').join(__dirname, '../tmp'),
 };
 
 function getCurrentTime() {
@@ -83,14 +83,6 @@ async function main() {
   await page.goto('https://secure.mealpal.com/login', {
     waitUntil: 'networkidle2', // 'networkidle0' is very useful for SPAs.
   });
-
-  const getCurrentDay = async () => {
-    const dayTextSelector = '#main > mp-weekday-carousel > div > span';
-    await page.waitForSelector(dayTextSelector);
-
-    const dayTextEl = await page.$(dayTextSelector);
-    return dayTextEl.textContent;
-  };
 
   const waitForDayUpdated = async (day) => {
     const waitForOptions = {};
@@ -122,11 +114,15 @@ async function main() {
     await page.waitForNavigation({ waitUntil: 'networkidle2' });
   };
 
-  const exitIfKitchenClosed = async () => {
+  const handleKitchenClosed = async () => {
     const closedKitchenSelector = '.kitchen-closed';
     const closedKitchenEl = await page.$(closedKitchenSelector);
 
-    if (closedKitchenEl !== null) {
+    if (closedKitchenEl !== null && program.refresh) {
+      await browser.reload();
+    }
+
+    else if (closedKitchenEl !== null) {
       logger.logTime('Kitchen is now closed.');
       await browser.close();
       process.exit(0);
@@ -251,7 +247,7 @@ async function main() {
 
   await logIn();
   await rateMeal();
-  await exitIfKitchenClosed();
+  await handleKitchenClosed();
 
   for (let meal of flexMeals.meals) {
     await reserveMeal(meal);
