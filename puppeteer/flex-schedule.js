@@ -116,10 +116,22 @@ async function main() {
 
   const handleKitchenClosed = async () => {
     const closedKitchenSelector = '.kitchen-closed';
-    const closedKitchenEl = await page.$(closedKitchenSelector);
+    let closedKitchenEl = await page.$(closedKitchenSelector);
 
     if (closedKitchenEl !== null && program.refresh) {
-      await browser.reload();
+      let continueRefreshing = true
+
+      while (continueRefreshing) {
+        await page.reload({
+          waitUntil: 'networkidle0'
+        });
+
+        let closedKitchenEl = await page.$(closedKitchenSelector);
+        if (closedKitchenEl === null) {
+          logger.logTime('Kitchen is now opened')
+          continueRefreshing = false
+        }
+      }
     }
 
     else if (closedKitchenEl !== null) {
