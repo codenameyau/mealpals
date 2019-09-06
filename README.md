@@ -26,3 +26,7 @@ You can change the meals inside the `flex-meals.json` file.
 ```sh
 node puppeteer/flex-schedule.js --headless --refresh >> flex-schedule.log 2>&1
 ```
+
+## Notes
+
+- Download amphetamine to keep computer running 24/7.
