@@ -18,7 +18,9 @@ vim .env
 ```
 
 Alternatively you can enter your username and password via the commandline.
-
+```sh
+node puppeteer/flex-schedule.js --email=email --password=password
+```
 
 ## Scheduling Task
 You can change the meals inside the `flex-meals.json` file.

@@ -1,5 +1,3 @@
-// Usage:
-// node puppeteer/flex-schedule.js --email="myemail@gmail.com" --password="password123"
 require('dotenv').config();
 const puppeteer = require('puppeteer');
 const program = require('commander');
