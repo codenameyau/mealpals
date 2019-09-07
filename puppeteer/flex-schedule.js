@@ -128,7 +128,7 @@ async function main() {
 
         let closedKitchenEl = await page.$(closedKitchenSelector);
         if (closedKitchenEl === null) {
-          logger.logTime('Kitchen is now opened')
+          logger.logTime('Kitchen is now opened.')
           continueRefreshing = false
         }
       }
@@ -248,8 +248,9 @@ async function main() {
 
       const modalEl = await page.$(modalSelector);
       if (modalEl !== null) {
-        const closeBtnSelector = `${modalSelector} button.modal__button`;
-        await page.click(closeBtnSelector);
+        const modalBtnSelector = `${modalSelector} button`;
+        await page.waitForSelector(modalBtnSelector);
+        await page.click(modalBtnSelector);
       }
     };
 
