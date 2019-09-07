@@ -35,10 +35,11 @@ const headlessMode = !!(program.headless || false);
 const options = {
   args,
   headless: headlessMode,
-  devtools: !headlessMode,
+  devtools: false,
   defaultViewport: null,
   ignoreHTTPSErrors: true,
-  slowMo: (!headlessMode && 10) || 0,
+  slowMo: 25,
+  // userDataDir: require('path').join(__dirname, '../tmp'),
 };
 
 function getCurrentTime() {
@@ -132,7 +133,7 @@ async function main() {
   const cancelMeals = async () => {
     const cancelLinkSelector = 'a.flex-reservation__action-bar__cancel';
     const cancelModalBtnSelector = '.dialog button.mp-cancel-order';
-    const cancelOrderBtnSelector = '.dialog-reservation-cancelled .close-button';
+    const cancelOrderBtnSelector = '#dialog-reservation-cancelled .close-button';
 
     const cancelLinks = await page.$$(cancelLinkSelector);
     for (let link of cancelLinks) {

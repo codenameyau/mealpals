@@ -54,10 +54,10 @@ const headlessMode = !!(program.headless || false);
 const options = {
   args,
   headless: headlessMode,
-  devtools: !headlessMode,
+  devtools: false,
   defaultViewport: null,
   ignoreHTTPSErrors: true,
-  slowMo: (!headlessMode && 10) || 0,
+  slowMo: 25,
   // userDataDir: require('path').join(__dirname, '../tmp'),
 };
 
@@ -169,6 +169,7 @@ async function main() {
     if (seeMenuBtnEl !== null) {
       await page.waitForSelector(seeMenuBtnSelector);
       await page.click(seeMenuBtnSelector);
+      await page.waitFor(300);
     }
 
     const filterMealSelector = '.filters-wrapper .filter-text input';
