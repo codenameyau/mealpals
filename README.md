@@ -30,3 +30,4 @@ node puppeteer/flex-schedule.js --headless --refresh >> flex-schedule.log 2>&1
 ## Notes
 
 - Download amphetamine to keep computer running 24/7.
+- Mealpal flex kitchen opens on Friday between 8pm and 9pm.

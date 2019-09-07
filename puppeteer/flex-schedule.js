@@ -84,20 +84,6 @@ async function main() {
     waitUntil: 'networkidle2', // 'networkidle0' is very useful for SPAs.
   });
 
-  const waitForDayUpdated = async (day) => {
-    const waitForOptions = {};
-    const dayName = INDEX_TO_DAY[day].name;
-
-    return page.waitFor(
-      (dayName) => {
-        const dayTextSelector = '#main > mp-weekday-carousel > div > span';
-        return document.querySelector(dayTextSelector).textContent === dayName;
-      },
-      waitForOptions,
-      dayName
-    );
-  };
-
   const logIn = async () => {
     const emailSelector = '#user_email';
     await page.waitForSelector(emailSelector);
@@ -167,14 +153,13 @@ async function main() {
     await rateMealSubmitButtonEl.click();
   };
 
-  // Check for these states for selected day:
-  // - Meal is already reserved.
   // - Meal is in the past but not reserved (.empty-day but no see menu button).
   // - Meal is in the future but reserved (don't reserve again).
   // - Meal is in the future but not reserved (continue with logic).
   const reserveMeal = async ({ day, meal, location, timeSlot = 3 }) => {
     const currentDaySelector = `#reservation-container > div > div:nth-child(${day})`;
 
+    // Case: meal is already reserved.
     const mealReservedSelector = `${currentDaySelector} .flex-reservation__meal-info`;
     const mealReservedEl = await page.$(mealReservedSelector);
     if (mealReservedEl !== null) {
@@ -184,8 +169,8 @@ async function main() {
     const seeMenuBtnSelector = `${currentDaySelector} button.empty-day__action`;
     const seeMenuBtnEl = await page.$(seeMenuBtnSelector);
     if (seeMenuBtnEl !== null) {
+      await page.waitForSelector(seeMenuBtnSelector);
       await page.click(seeMenuBtnSelector);
-      await waitForDayUpdated(day);
     }
 
     const filterMealSelector = '.filters-wrapper .filter-text input';
@@ -238,7 +223,7 @@ async function main() {
       );
 
       logger.logTime(
-        `Meal "${meal}" at ${location} for ${INDEX_TO_DAY[day].name} successfully reserved.`
+        `Meal "${meal}" for ${INDEX_TO_DAY[day].name} successfully reserved.`
       );
     };
 
