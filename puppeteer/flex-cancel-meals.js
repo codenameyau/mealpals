@@ -140,6 +140,8 @@ async function main() {
       await link.click();
       await page.waitForSelector(cancelModalBtnSelector);
       await page.click(cancelModalBtnSelector);
+
+      // TODO: fix bug with selector not found.
       await page.waitForSelector(cancelOrderBtnSelector);
       await page.click(cancelOrderBtnSelector);
     }

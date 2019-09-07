@@ -54,7 +54,7 @@ const headlessMode = !!(program.headless || false);
 const options = {
   args,
   headless: headlessMode,
-  devtools: false,
+  devtools: !headlessMode,
   defaultViewport: null,
   ignoreHTTPSErrors: true,
   slowMo: 25,
