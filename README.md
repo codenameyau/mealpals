@@ -29,6 +29,14 @@ You can change the meals inside the `flex-meals.json` file.
 node puppeteer/flex-schedule.js --headless --refresh >> flex-schedule.log 2>&1
 ```
 
+```sh
+# Edit cronfile
+crontab -e
+
+# Run on friday at 8:15
+15 8 * * 5 $(cd /home/yau/Workspace/github/mealpals; node puppeteer/flex-schedule.js --refresh)
+```
+
 ## Notes
 
 - Download amphetamine to keep computer running 24/7.
